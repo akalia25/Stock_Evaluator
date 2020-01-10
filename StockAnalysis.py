@@ -32,7 +32,7 @@ def user_input():
     return stocks
 
 
-def parseStocks(val):
+def cleanse_stocks(val):
     """
     This function parses the user's input and ensures there are no whitespaces.
     """
@@ -40,7 +40,7 @@ def parseStocks(val):
     return val
 
 
-def historicalData(stocks):
+def historical_data(stocks):
     """
     This function uses the Yfinance API and collects the historical data
     of the user inputted and places the data in a dataframe (DF).
@@ -59,11 +59,43 @@ def historicalData(stocks):
     return stocks_df
 
 
+def zvalue(series):
+    """
+    This function takes a series as input and calculates the standard
+    deviation, mean, and uses the series last stock price as the x value
+    using these values it calculates the z value
+    """
+    meanVal = series.mean()
+    stdVal = series.std()
+    mu = series[-1]
+    z1 = (mu - meanVal) / stdVal
+    return z1
+
+
+def stock_appraisal_z_value(stocks_df):
+    stock_zval = {}
+    stock_appraisal = {}
+    for stock in stocks_df.StockName.unique():
+        series = stocks_df['Close'][(stocks_df.StockName == stock)][-30:]
+        z1 = zvalue(series)
+        stock_zval[stock] = z1
+    for key, value in stock_zval.items():
+        if 1 > value > -1:
+            stock_appraisal[key] = 'HOLD'
+        if value > 1:
+            stock_appraisal[key] = 'SELL'
+        if value < -1:
+            stock_appraisal[key] = 'BUY'
+    print(stock_appraisal)
+    return stock_appraisal
+
+
 def main():
     stocks = user_input().split(',')
-    stocks = parseStocks(stocks)
-    stocks_df = historicalData(stocks)
-    print(stocks_df)
+    stocks = cleanse_stocks(stocks)
+    stocks_df = historical_data(stocks)
+    stock_appraisal_z_value(stocks_df)
+
 
 if __name__ == '__main__':
     main()
