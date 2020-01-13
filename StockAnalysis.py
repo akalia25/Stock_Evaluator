@@ -87,8 +87,19 @@ def stock_appraisal_z_value(stocks_df):
         if value < -1:
             stock_appraisal[key] = 'BUY'
     print(stock_appraisal)
-    return stock_appraisal
+    stock_appraisal_z_value_df = pd.DataFrame(list(stock_appraisal.values()),
+                                  columns=['z_value_appraisal'],
+                                  index=stock_appraisal.keys())
+    return stock_appraisal_z_value_df
 
+
+def stock_appraisal_moving_average(stocks_df):
+    for stock in stocks_df.StockName.unique():
+        df1 = stocks_df['Close'][(stocks_df.StockName == stock)][-30:]
+        for moving_average_period in (5, 15):
+            moving_average = df1.rolling(window=moving_average_period).mean()
+            df1.loc[:, 'SMA ' + str(stock) + ' ' + str(
+                    moving_average_period)] = moving_average.values
 
 def main():
     stocks = user_input().split(',')
